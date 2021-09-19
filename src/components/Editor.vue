@@ -1,5 +1,7 @@
 <template>
+  <h3>Document title: {{ docTitle }}</h3>
   <Button @btn-click="logToConsole" :text="'Save'" :color="'blue'" />
+  <Button @btn-click="toMenu" :text="'Menu'" :color="'red'" />
   <div id="editor">
     <ckeditor
       :editor="editor"
@@ -7,6 +9,7 @@
       :config="editorConfig"
     ></ckeditor>
   </div>
+  <p></p>
 </template>
 
 <script>
@@ -15,13 +18,18 @@ import Button from "./Button.vue";
 
 export default {
   name: "Editor",
+  emits: ['to-menu'],
   components: {
     Button,
+  },
+  props: {
+    docTitle: String,
+    docData: String,
   },
   data() {
     return {
       editor: ClassicEditor,
-      editorData: "<p>Start writing here...</p>",
+      editorData: this.docData,
       editorConfig: {
         config: {
           height: 5000,
@@ -33,6 +41,9 @@ export default {
     logToConsole() {
       console.log(this.editorData);
     },
+    toMenu() {
+      this.$emit("to-menu")
+    }
   },
 };
 </script>
