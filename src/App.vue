@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <Header :title="'An editor for jsramverk'" />
-    <div v-show="showMenu">
+    <div v-show="showMenu" class="menu">
       <Button @btn-click="toggleCreateDocument" :text="'Create new document'" :color="'green'" />
       <Button @btn-click="toggleLoadDocument" :text="'Load existing document'" :color="'green'" />
     </div>
@@ -9,10 +9,10 @@
       <CreateDocument @createDoc="createDoc($event)" />
     </div>
     <div v-show="showLoadDocument">
-      <LoadDocument @loadDoc="loadDoc($event)" />
+      <LoadDocument @loadDoc="loadDoc($event)" :all-titles="allTitles" />
     </div>
     <div v-show="showEditor">
-      <Editor :doc-title="docTitle" :doc-data="docData" @to-menu="toMenu" :key="docTitle" />
+      <Editor :doc-id="docId" :doc-title="docTitle" :doc-text="docText" @to-menu="toMenu" :key="docTitle" />
     </div>
   </div>
 </template>
@@ -23,6 +23,8 @@ import Header from "./components/Header.vue"
 import Button from "./components/Button.vue"
 import CreateDocument from "./components/CreateDocument.vue"
 import LoadDocument from "./components/LoadDocument.vue"
+
+const url = window.location.host === "localhost" ? "http://localhost:1337" : "https://jannefilurens-texteditor.azurewebsites.net"
 
 export default {
   name: "App",
@@ -35,8 +37,10 @@ export default {
   },
   data() {
     return {
-      docTitle: "Title from app",
-      docData: "<p>String from app...</p>",
+      docId: String,
+      docTitle: String,
+      docText: String,
+      allTitles: Array,
       showMenu: true,
       showCreateDocument: false,
       showLoadDocument: false,
@@ -51,26 +55,64 @@ export default {
       this.showEditor = false
     },
     toggleLoadDocument() {
+
+      fetch(`${url}/all_titles`)
+            .then(res => res.json())
+            .then(res => (this.allTitles = res))
+            .catch(err => {
+                console.error("Error: ", err)
+            })
+
       this.showMenu = false
       this.showCreateDocument = false
       this.showLoadDocument = true
       this.showEditor = false
     },
     createDoc(title) {
+
+      let data = {
+        title: title
+      }
+
+      fetch(`${url}/insert_doc`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Success:", data);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+
       this.docTitle = title
-      this.docData = "Created a new document..."
+      this.docText = "Created a new document..."
       this.showMenu = false
       this.showCreateDocument = false
       this.showLoadDocument = false
       this.showEditor = true
-    },
+
+},
     loadDoc(title) {
-      this.docTitle = title;
-      this.docData = "Loaded a document..."
-      this.showMenu = false
-      this.showCreateDocument = false
-      this.showLoadDocument = false
-      this.showEditor = true
+
+      fetch(`${url}/read_doc/${title}`)
+            .then(res => res.json())
+            .then(res => {
+              this.docId = res._id;
+              this.docTitle = res.title;
+              this.docText = res.text;
+              this.showMenu = false
+              this.showCreateDocument = false
+              this.showLoadDocument = false
+              this.showEditor = true
+            })
+            .catch(err => {
+                console.error("Error: ", err)
+            })
     },
     toMenu() {
       this.showMenu = true
@@ -78,7 +120,7 @@ export default {
       this.showLoadDocument = false
       this.showEditor = false
       this.docTitle = ""
-      this.docData = ""
+      this.docText = ""
     }
 
   }
@@ -130,5 +172,10 @@ body {
 .btn-block {
   display: block;
   width: 100%;
+}
+
+.menu {
+  display: flex;
+  justify-content: center;
 }
 </style>

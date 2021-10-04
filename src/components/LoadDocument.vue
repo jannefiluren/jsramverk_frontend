@@ -1,40 +1,18 @@
 <template>
-    <!-- <ul>
-        <li :key="doc.title" v-for="doc in docs">
-        {{ doc.title }}
-        </li>
-    </ul> -->
     <p>Load one of the existing documents listed below:</p>
     <div class="class-list">
-        <div @click="loadDoc(doc.title)" class="doc" :key="doc.title" v-for="doc in docs">
-            <p>{{ doc.title }}</p>
+        <div @click="loadDoc(title.title)" class="doc" :key="title" v-for="title in allTitles">
+            <p>{{ title.title }}</p>
         </div>
     </div>
-
 </template>
 
 <script>
 export default {
     name: "LoadDocument",
     emits: ["load-doc"],
-    data() {
-        return {
-            docs: [
-                {
-                    title: "Doc 1",
-                    text: "Text 1",
-                },
-                {
-                    title: "Doc 2",
-                    text: "Text 2",
-                },
-                {
-                    title: "Doc 3",
-                    text: "Text 3",
-                },
-            ]
-        }
-        
+    props: {
+        allTitles: Array
     },
     methods: {
         loadDoc(title) {
